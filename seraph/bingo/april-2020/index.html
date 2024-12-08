@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta property="og:title" content="MikaYuu Bingo 2020">
+  <meta property="og:type" content="website">
+  <meta property="og:image" itemprop="image" content="https://ygg2.github.io/seraph/bingo/april-2020/icon.png">
+  <meta property="og:image:secure_url" content="https://ygg2.github.io/seraph/bingo/april-2020/icon.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="256">
+  <meta property="og:image:height" content="256">
+  <meta property="og:image:alt" content="Mika and Yuu playing bingo">
+  <meta property="og:url" content="https://ygg2.github.io/seraph/bingo/april-2020/">
+  <meta property="og:description" content="Ygg's MikaYuu Bingo card">
+  <link href="icon.ico" type="image/x-icon" rel="shortcut icon">
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <style>
+    [v-cloak]   { display: none; }
+    .v-responsive__content { width: auto !important; }
+    .bingo-card { padding-bottom: 12px !important; }
+    .bingo-row { padding: 12px 0 0 12px !important; }
+    .bingo-col { margin-right: 12px !important; }
+    .bingo-prompt { padding: 8px 0 !important; line-height: 1em !important; }
+    @media (max-width: 768px) {
+      .bingo-card { padding-bottom: 4px !important ;}
+      .bingo-row { padding: 4px 0 0 4px !important; }
+      .bingo-col { margin-right: 4px !important; }
+      .bingo-prompt { padding: 4px 0 !important; font-size: .7rem !important; }
+    }
+  </style>
+  <title>MikaYuu Bingo 2020</title>
+</head>
+
+<body>
+
+<v-app id="app" v-cloak>
+  <v-main class="yellow lighten-4">
+    <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+    <v-container>
+      <v-sheet color="white" class="bingo-card" elevation="4">
+        <v-row v-for="row, i of rows" :key="i" no-gutters class="bingo-row">
+          <v-col
+            v-for="slot, j of row" :key="j"
+            class="bingo-col"
+            @click.stop="viewSlot(slot, i, j)"
+            tabindex="0"
+          >
+
+            <v-card v-if="!slot.filled" flat class="red lighten-4">
+              <v-responsive aspect-ratio="1" class="flex align-center">
+                <p v-if="isLarge" class="text-center ma-4 mb-10">
+                  {{ slot.prompt }}
+                </p>
+              </v-responsive>
+            </v-card>
+
+            <v-card v-else flat hover :style="slot.css" class="cyan lighten-4">
+              <v-responsive aspect-ratio="1" style="border-radius: 4px">
+
+                <div v-if="slot.text" class="text-center">
+                  <v-card-subtitle class="bingo-prompt">
+                    {{ isLarge? slot.prompt : slot.text.keyword }}
+                  </v-card-subtitle>
+                  <v-card-text v-if="isLarge">{{ $vuetify.breakpoint.sm ? slot.text.sample : slot.text.extended }}</v-card-text>
+                </div>
+
+                <v-img 
+                  v-else
+                  :src="slot.img.src"
+                  :position="slot.img.pos"
+                  :height="slot.img.zoom"
+                  class="text-center"
+                  aspect-ratio="1"
+                >
+                  <v-card-subtitle v-if="isLarge">
+                    {{ slot.prompt }}
+                  </v-card-subtitle>
+                </v-img>
+
+              </v-responsive>
+            </v-card>
+            
+          </v-col>
+        </v-row>
+      </v-sheet>
+
+      <v-row style="min-height:700px">
+        <v-col cols="12" sm="auto">
+          <v-date-picker
+            v-model="date"
+            min="2020-04-20"
+            max="2020-05-13"
+            color="red lighten-3"
+            @change="viewDateSlot"
+          ></v-date-picker>
+        </v-col>
+        <v-col>
+          <v-row justify="center">
+            <v-card v-if="sideSlot.text" :style="sideSlot.css">
+              <v-card-subtitle>{{ sideSlot.text.extended }}</v-card-subtitle>
+              <v-divider></v-divider>
+              <v-card-title>{{ sideSlot.text.keyword }}</v-card-title>
+              <v-card-text>{{ sideSlot.text.full }}</v-card-text>
+            </v-card>
+            <v-img
+              v-else
+              :src="sideSlot.img.src"
+              :max-width="sideSlot.img.width"
+            ></v-img>
+          </v-row>
+        </v-col>
+        <v-col cols="12" sm="auto">
+          <v-card>
+            <v-card-title>{{ sideSlot.prompt }}</v-card-title>
+          </v-card>
+        </v-col>
+      </v-row>
+
+    </v-container>
+    <v-dialog
+      v-model="showSlot"
+      :max-width="dialogWidth"
+      :origin="origin"
+    >
+      <v-card :style="currentSlot.css">
+        <v-card-title v-if="currentSlot.img && !isLarge">
+          {{ currentSlot.prompt }}
+        </v-card-title>
+        <div v-if="currentSlot.text">
+          <v-card-title>{{ currentSlot.prompt }}</v-card-title>
+          <v-card-text :class="{ 'pa-10 pt-0': isLarge }">
+            {{ currentSlot.text.full }}
+          </v-card-text>
+        </div>
+        <v-img v-if="currentSlot.img" :src="currentSlot.img.src">
+          <v-card-title v-if="isLarge" class="ml-3">
+            {{ currentSlot.prompt }}
+          </v-card-title>
+        </v-img>
+      </v-card>
+    </v-dialog>
+  </v-main>
+</v-app>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        breadcrumbs: [
+          { text: 'Seraph', href: '/seraph' },
+          { text: 'Bingo', href: '/seraph/bingo'},
+          { text: 'April 2020', disabled: true }
+        ],
+        rows: [
+          [
+            {
+              prompt: 'Vulnerable',
+              filled: 24,
+              img: {
+                src: 'vulnerable.png',
+                width: '450',
+                zoom: '100%',
+                pos: '0 0'
+              },
+              css: {
+                color: '#ff99ff'
+              }
+            },
+            {
+              prompt: 'Radiant',
+              filled: 4,
+              img: {
+                src: 'radiant.png',
+                width: '600',
+                zoom: '250%',
+                pos: '70% 0'
+              }
+            },
+            {
+              prompt: 'First kiss',
+              filled: false,
+            },
+            {
+              prompt: 'Hanahaki AU',
+              filled: false,
+            },
+            {
+              prompt: 'Artist AU',
+              filled: 27,
+              img: {
+                src: 'artists.jpg',
+                width: '779',
+                zoom: '100%',
+                pos: '15% 0'
+              }
+            },
+          ],
+          [
+            {
+              prompt: 'Body swap',
+              filled: false,
+            },
+            {
+              prompt: 'Backstory',
+              filled: false,
+            },
+            {
+              prompt: 'Soulmates AU',
+              filled: 21,
+              img: {
+                src: 'soulmates.png',
+                width: '800',
+                zoom: '120%',
+                pos: '50% 0'
+              },
+              css: {
+                color: "#555555"
+              }
+            },
+            {
+              prompt: 'Iconic scene',
+              filled: false,
+            },
+            {
+              prompt: 'Canon Divergence',
+              filled: 28,
+              img: {
+                src: 'meka.png',
+                width: '600',
+                zoom: '200%',
+                pos: '67% 0'
+              }
+            },
+          ],
+          [
+            {
+              prompt: 'Reimagine a scene',
+              filled: false,
+            },
+            {
+              prompt: 'Neko',
+              filled: 20,
+              img: {
+                src: 'neko.png',
+                width: '450',
+                zoom: '200%',
+                pos: '50% -10vw'
+              }
+            },
+            {
+              prompt: 'Free Space',
+              filled: true,
+              img: {
+                src: 'free_space.png',
+                width: '512',
+                zoom: '100%',
+                pos: '10% 0'
+              },
+              css: {
+                color: '#ffaaaa'
+              }
+            },
+            {
+              prompt: 'Love confessions',
+              filled: false,
+            },
+            {
+              prompt: 'Divine',
+              filled: 3,
+              img: {
+                src: 'divine.png',
+                width: '600',
+                zoom: '100%',
+                pos: '0 0'
+              }
+            },
+          ],
+          [
+            {
+              prompt: 'Bed sharing',
+              filled: 23,
+              img: {
+                src: 'bed_share.png',
+                width: '600',
+                zoom: '160%',
+                pos: '50% 0'
+              },
+              color: '#555588'
+            },
+            {
+              prompt: 'Royal AU',
+              filled: 25,
+              img: {
+                src: 'royalau.png',
+                width: '800',
+                zoom: '250%',
+                pos: '20% 0'
+              },
+              css: {
+                color: '#ff4499'
+              }
+            },
+            {
+              prompt: 'Crossover AU',
+              filled: false,
+            },
+            {
+              prompt: 'Magic AU',
+              filled: 30,
+              img: {
+                src: 'three_of_clubs.png',
+                width: '600',
+                zoom: '100%',
+                pos: '0 0'
+              }
+            },
+            {
+              prompt: 'High school / college AU',
+              filled: 2,
+              img:{
+                src: 'online_school.png',
+                width: '800',
+                zoom: '160%',
+                pos: '0 0'
+              }
+            },
+          ],
+          [
+            {
+              prompt: 'Mutual pining',
+              filled: 1,
+              img: {
+                src: 'pining.png',
+                width: '600',
+                zoom: '100%',
+                pos: '0 0'
+              },
+              css: {
+                color: '#7755bb'
+              }
+            },
+            {
+              prompt: 'Guilt',
+              filled: 5,
+              img: {
+                src: 'Guilt.png',
+                width: '800',
+                zoom: '120%',
+                pos: '0 0'
+              }
+            },
+            {
+              prompt: 'Enemies to lovers',
+              filled: 29,
+              img: {
+                src: 'bythebook.png',
+                width: '800',
+                zoom: '100%',
+                pos: '65% 0'
+              }
+            },
+            {
+              prompt: 'Isolated/trapped',
+              filled: 26,
+              css: {
+                whiteSpace: 'pre-line'
+              },
+              text: {
+                keyword: 'Take the Stairs',
+                sample: `"I'm going to kill Guren," he muttered.`,
+                extended: `"I'm going to kill Guren," he muttered.\n\n"Pardon?"`,
+                full: `It was 2 AM, Yuu was about to fall asleep waiting for the elevator, and everything was Guren's fault.
+
+Yuu didn't care for the meeting about overthrowing Hiiragi Inc., and the social afterwards had him metaphorically shoving breadsticks into his purse within minutes. If it wasn't for Guren's insistance, he would've left early as planned, instead of taking the last train and shuffling into his apartment building in the wee hours of the morning.
+
+The elevator arrived. Yuu stumbled in, lightly hit the 10 button, and leaned against the side. He watched the LED number climbing.
+
+6, 7, 8...There was a slight jolt and then the elevator stopped moving entirely. Yuu stared at the unchanging number, baffled. "No way."
+
+Panic rising as the sleepy haze receeded, Yuu pressed 10 again, followed by pretty much every other button, but to no avail. Finally, he smacked his last resort: the emergency call button.
+
+"I'm going to kill Guren," he muttered.
+
+"Pardon?"
+
+Yuu startled. "Uh- nothing!"
+
+"I'm Mika, a technician," the voice continued. "What happened?"
+
+The calm tone of voice immediately made Yuu feel more relaxed. "The elevator stopped. Between floors 8 and 9."
+
+"Okay. Is there anyone else with you?"
+
+"No, just me."
+
+"Alright. Hang on, I'll get you out."
+
+-
+
+Yuu almost freaked out again when the elevator started moving, but it soon reached the 9th floor and he breathed a sign of relief. The doors slid open, revealing his savior, a guy about his height with a hard hat labeled TECH pulled over blond hair. He was crinkling an open bag of sweet and sour chips in one hand.
+
+"Thank you. You're a lifesaver. The best elevator rescuer in the world," Yuu babbled as he left the elevator.
+
+Mika laughed softly. "Technician apprentice, actually, and just doing my job."
+
+"Apprentice?"
+
+"Yes, but Krul stayed late after some business meeting today."
+
+That sounded familiar, but exhaustion was catching up on Yuu. "It is pretty late..."
+
+"Want some chips?" asked Mika. "They work wonders for staying awake."
+
+"Nah, I just want to go home." Yuu took a step in a random direction. "Shoot. My apartment's one floor up."
+
+"I can walk with you to your floor," Mika offered.
+
+Yuu had never been happier to take the stairs.`
+              }
+            },
+            {
+              prompt: 'Role reversal',
+              filled: 22,
+              img: {
+                src: "squad.png",
+                width: "800",
+                zoom: "200%",
+                pos: "30% -5vw",
+              },
+              css: {
+                color: "#555555"
+              }
+            },
+          ]
+        ],
+        showSlot: false,
+        currentSlot: {},
+        sideSlot: {},
+        origin: 'center center',
+        date: '2020-04-20'
+      },
+      computed: {
+        isLarge() {
+          return this.$vuetify.breakpoint.width > 768;
+        },
+        dialogWidth() {
+          return this.currentSlot.img ? this.currentSlot.img.width : '800';
+        }
+      },
+      methods: {
+        viewSlot(slot, i, j) {
+          if (slot.filled) {
+            this.origin = `${j * 20}% ${i * 20}%`;
+            this.currentSlot = slot;
+            this.showSlot = true;
+          }
+        },
+        viewDateSlot(date) {
+          let day = parseInt(date.split('-')[2], 10);
+          for (let row of this.rows) {
+            for (let slot of row) {
+              if (day == slot.filled) {
+                this.sideSlot = slot;
+                break;
+              }
+            }
+          }
+        }
+      },
+      created() {
+        this.sideSlot = this.rows[2][1];
+      },
+      mounted() {
+        let prompt = window.location.hash.slice(1)
+          .toLowerCase()
+          .replace('-',' ');
+        if (prompt) {
+          for (let row of this.rows) {
+            for (let slot of row) {
+              if (prompt == slot.prompt.toLowerCase()) {
+                this.viewSlot(slot, 2, 2);
+                break;
+              }
+            }
+          }
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
