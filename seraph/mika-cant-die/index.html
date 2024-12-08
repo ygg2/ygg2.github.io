@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link href="icon.ico" type="image/x-icon" rel="shortcut icon">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Ibarra+Real+Nova&display=swap" rel="stylesheet"> 
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <style>
+    [v-cloak]   { display: none; }
+    .page {
+      display: block;
+      max-width: 100%;
+      padding: 0;
+      margin: 0 auto;
+    }
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta property="og:title" content="Yuu'll Be the Death of Me">
+  <meta property="og:type" content="website">
+  <meta property="og:image" itemprop="image" content="https://ygg2.github.io/seraph/mika-cant-die/icon.png">
+  <meta property="og:image:secure_url" content="https://ygg2.github.io/seraph/mika-cant-die/icon.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="256">
+  <meta property="og:image:height" content="256">
+  <meta property="og:image:alt" content="Yuu with sunglasses">
+  <meta property="og:url" content="https://ygg2.github.io/seraph/mika-cant-die/">
+  <meta property="og:description" content="Comic by Ana & Ygg">
+  <title>Yuu'll Be the Death of Me</title>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <v-app>
+
+      <v-app-bar app :value="toolbar" dense dark>
+        <v-app-bar-nav-icon @click.stop="nav=!nav"></v-app-bar-nav-icon>
+        <v-toolbar-title class="body-1">
+          {{ $vuetify.breakpoint.xs ? '' : "Yuu'll Be the Death of Me" }}
+          <v-icon v-if="$vuetify.breakpoint.smAndUp">mdi-chevron-right</v-icon>
+          {{ currentEpisode.title }}
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn icon
+          v-show="previousEpisode!=null"
+          @click="openEpisode(previousEpisode)"
+        >
+          <v-icon>mdi-chevron-left</v-icon>
+        </v-btn>
+        {{ episodeNumber }}
+        <v-btn icon
+          v-show="nextEpisode"
+          @click="openEpisode(nextEpisode)"
+        >
+          <v-icon>mdi-chevron-right</v-icon>
+        </v-btn>
+      </v-app-bar>
+
+      <v-navigation-drawer v-model="nav" app dark temporary :width="navSize">
+        <v-card tile class="mb-3">
+          <v-img src="sidebar.jpg" class="white--text align-end">
+            <v-btn icon absolute top left @click="nav=false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-card-title>Yuu'll Be the Death of Me</v-card-title>
+            <v-card-subtitle>by Ana & Ygg</v-card-subtitle>
+            <v-card-text>
+              AU of an AU of an AU, but merged with an AU
+            </v-card-text>
+          </v-img>
+        </v-card>
+        <v-list-item
+          v-for="(ep, i) of episodesReversed"
+          :key="ep.title"
+          @click="openEpisode(episodes.length - i - 1)"
+        >
+          <v-list-item-avatar size="64">
+            <v-img
+              :src="ep.pages[0]"
+              :min-width="ep.zoom"
+              :position="ep.position">
+            </v-img>
+          </v-list-item-avatar>
+          <v-list-item-content>
+            <v-list-item-title>{{ ep.title }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-navigation-drawer>
+  
+      <v-content app>
+        <div @click="hideToolbar">
+          <img v-for="page of currentEpisode.pages" :src="page" class="page">
+        </div>
+        <v-container>
+          <v-row justify="center" class="pb-5">
+            <v-btn
+              v-show="nextEpisode"
+              fab large depressed color="white"
+              @click="openEpisode(nextEpisode)"
+            >
+              <v-icon>mdi-chevron-down</v-icon>
+            </v-btn>
+          </v-row>
+        </v-container>
+      </v-content>
+
+      <v-footer>
+        <v-col class="text-center">
+          <v-btn href="https://twitter.com/anahhzp" fab depressed class="mx-2">
+            <v-avatar size="64">
+              <v-img src="ana.jpg"></v-img>
+            </v-avatar>
+          </v-btn>
+          <v-btn href="../" fab depressed class="mx-2">
+            <v-avatar size="64">
+              <v-img src="ygg.jpg"></v-img>
+            </v-avatar>
+          </v-btn>
+          <p class="font-weight-light py-4">Ana & Ygg - 2020</p>
+        </v-col>
+      </v-footer>
+
+      <v-fab-transition>
+        <v-btn
+          fab fixed large dark bottom right
+          v-show="toolbar"
+          @click="$vuetify.goTo(0)">
+          <v-icon>mdi-chevron-up</v-icon>
+        </v-btn>
+      </v-fab-transition>
+  
+    </v-app>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      data: {
+        nav: false,
+        toolbar: true,
+        episodeNumber: 0,
+        episodesReversed: [],
+        episodes: [
+          {
+            title: 'Title Page',
+            zoom: '64',
+            position: '40% 0',
+            pages: [
+              'cover.jpg'
+            ]
+          },
+          {
+            title:'Prologue',
+            zoom: '128',
+            position: '0 5%',
+            pages: [
+              'prologue/1.jpg'
+            ]
+          },
+          {
+            title: 'Episode 1',
+            zoom: '200',
+            position: '35px 37%',
+            pages: [
+              'episode1/1.png',
+              'episode1/2.png',
+              'episode1/3.png'
+            ]
+          }
+        ]
+      },
+      computed: {
+        navSize() {
+          if (this.$vuetify.breakpoint.smAndUp) {
+            return Math.min(this.$vuetify.breakpoint.width / 2, 500);
+          }
+          return '100%';
+        },
+        previousEpisode() {
+          return this.episodeNumber ? this.episodeNumber - 1 : null;
+        },
+        currentEpisode() {
+          return this.episodes[this.episodeNumber];
+        },
+        nextEpisode() {
+          if (this.episodeNumber < this.episodes.length - 1) {
+            return this.episodeNumber + 1;
+          }
+          return false;
+        }
+      },
+      methods: {
+        hideToolbar() {
+          this.toolbar = !this.toolbar;
+          if (!this.toolbar) {
+            this.nav = false;
+          }
+        },
+        openEpisode(ep) {
+          window.scroll(0, 0);
+          this.episodeNumber = ep;
+          this.nav = false;
+          let _hash = this.episodes[this.episodeNumber].title.replace(' ', '-')
+            .toLowerCase();
+          window.location.hash = _hash;
+        }
+      },
+      created() {
+        this.episodesReversed = this.episodes.slice().reverse();
+        let _hash = window.location.hash.slice(1)
+          .replace(' ', '-')
+          .toLowerCase();
+        if (_hash) {
+          for (var i = 0; i < this.episodes.length; i++) {
+            let _title = this.episodes[i].title.replace(' ', '-').toLowerCase()
+            if (_title == _hash) {
+              this.episodeNumber = i;
+              break;
+            }
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>

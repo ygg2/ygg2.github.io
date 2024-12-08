@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <meta property="og:title" content="MikaYuu Bingo July 2020">
+    <meta property="og:type" content="website">
+    <meta property="og:image" itemprop="image" content="https://ygg2.github.io/seraph/bingo/july-2020/icon.png">
+    <meta property="og:image:secure_url" content="https://ygg2.github.io/seraph/bingo/july-2020/icon.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="256">
+    <meta property="og:image:height" content="256">
+    <meta property="og:image:alt" content="Mika and Yuu playing bingo">
+    <meta property="og:url" content="https://ygg2.github.io/seraph/bingo/july-2020">
+    <meta property="og:description" content="Ygg's MikaYuu Bingo card">
+    <link href="icon.ico" type="image/x-icon" rel="shortcut icon">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.3.4/dist/vuetify.min.css" rel="stylesheet">
+    <style>
+      [v-cloak] {
+        display: none;
+      }
+      .v-responsive__content {
+        width: auto !important;
+      }
+      .bingo-prompt {
+        overflow-wrap: break-word;
+      }
+      @media (max-width: 768px) {
+        .bingo-prompt p {
+          font-size: 0.6rem !important;
+          margin-block-end: 0;
+        }
+      }
+    </style>
+    <title>MikaYuu Bingo July 2020</title>
+  </head>
+
+  <body>
+    <v-app id="app" v-cloak>
+      <v-main>
+        <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+        <v-container>
+          <v-sheet tile>
+            <v-row v-for="row, i of rows" :key="i" no-gutters>
+              <v-col
+                v-for="prompt, j of row"
+                :key="j"
+                @click.stop="viewSlot(prompt, i, j)"
+                tabindex="0"
+                class="d-flex align-start"
+              >
+                
+                <img class="flex" v-if="cards.has(prompt)" :src="cards.get(prompt)">
+               
+                <v-responsive v-else aspect-ratio="1" class="bingo-prompt flex align-center">
+                  <p class="text-center light-blue--text text--accent-1">
+                    {{ prompt }}
+                  </p>
+                </v-responsive>
+
+              </v-col>
+            </v-row>
+          </v-sheet>
+
+          <v-row style="min-height: 700px;">
+            <v-col cols="12" sm="auto">
+              <div class="d-flex justify-center">
+                <v-date-picker
+                  v-model="date"
+                  min="2020-07-19"
+                  max="2020-08-12"
+                  @change="viewDateSlot"
+                ></v-date-picker>
+              </div>
+              <v-card color="#424242" class="mt-4">
+                <v-card-title>{{ sideSlot }}</v-card-title>
+              </v-card>
+            </v-col>
+            <v-col>
+              <v-row justify="center">
+                <v-img :src="cards.get(sideSlot)" :max-width="600"></v-img>
+              </v-row>
+            </v-col>
+          </v-row>
+        </v-container>
+
+        <v-dialog v-model="showSlot" :max-width="600" :origin="origin">
+          <v-card v-if="currentSlot">
+            <v-img :src="cards.get(currentSlot)"></v-img>
+          </v-card>
+        </v-dialog>
+      </v-main>
+    </v-app>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        vuetify: new Vuetify({ theme: { dark: true } }),
+        data: {
+          breadcrumbs: [
+            { text: 'Seraph', href: '/seraph' },
+            { text: 'Bingo', href: '/seraph/bingo' },
+            { text: 'July 2020', disabled: true },
+          ],
+          cardArray: [
+            ['FREE SPACE', 'free_space.png'],
+            ['Proposal', 'proposal.png'],
+            ['Roommates AU', 'roommates.png'],
+            ['Beach episode', 'beach.png'],
+            ['Flower crowns', 'flower_crown.png'],
+            ['Video games', 'vg.png'],
+            ['Mer AU', 'mers.png'],
+            ['Blood drinking', 'tea.png'],
+            ['Nightmare', 'nightmare.png'],
+            ['Hand holding', 'handhold.png'],
+            ['Florist AU', 'florist.png'],
+            ['High school / College AU', 'school.png'],
+          ],
+          cards: {},
+          rows: [
+            ['Reincarnation AU', 'Blood drinking', 'Idol / Celebrity AU', 'Demon!Mika', 'Music'],
+            ['Hand holding', 'Movie night', 'Reunion', 'Nightmare', 'Coffee Shop AU'],
+            ['Roommates AU', 'Thigh high boots', 'FREE SPACE', 'First date', 'Beach episode'],
+            ['Video games', 'Flower crowns', 'High school / College AU', 'Adopting a kid', 'Forehead touch'],
+            ['Florist AU', 'Clothes-sharing', 'Mer AU', 'Proposal', 'Secret']
+          ],
+          showSlot: false,
+          currentSlot: null,
+          sideSlot: null,
+          origin: 'center center',
+          date: '2020-07-30',
+          sideDate: 11,
+          start: 19
+        },
+        methods: {
+          viewSlot(prompt, i, j) {
+            if (this.cards.has(prompt)) {
+              this.origin = `${j * 20}% ${i * 20}%`
+              this.currentSlot = prompt
+              this.showSlot = true
+            }
+          },
+          viewDateSlot(date) {
+            let day = parseInt(date.split('-')[2], 10);
+            let index = day - this.start;
+            if (day < this.start) index = 31 - this.start + day;
+            let entry = this.cardArray[index];
+            if (entry) this.sideSlot = entry[0];
+          },
+        },
+        created() {
+          this.cards = new Map(this.cardArray);
+          this.sideSlot = this.cardArray[this.sideDate][0];
+        },
+        mounted() {
+          let hash = window.location.hash;
+          if (hash) {
+            let prompt = hash.slice(1).toLowerCase().replace('-', ' ');
+            let slots = this.rows.flat();
+            let match = slots.map((x) => x.toLowerCase()).indexOf(prompt);
+            this.viewSlot(slots[match], 2, 2);
+          }
+        },
+      })
+    </script>
+  </body>
+</html>
