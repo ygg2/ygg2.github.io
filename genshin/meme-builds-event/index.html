@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <title>Meme Builds Event</title>
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@3/lib/index.css" />
+  <style>
+    [v-cloak]   { display: none; }
+    @font-face {
+      font-family: Genshin;
+      src: url(../fonts/zh-cn.ttf);
+    }
+    body {
+      background-color: #D9D1C5;
+      color: #495366;
+      padding: 0 5% 0 3rem;
+      font-family: Genshin;
+    }
+    main {
+      margin-left: 150px;
+    }
+    nav {
+      float: left;
+      position: fixed;
+    }
+    header {
+      padding-bottom: .5em;
+    }
+    /* the box-like sections */
+    section {
+      padding: .8em;
+      background-color: #EBE2D9;
+      margin: 4px;
+      outline: 4px #D5C9B8 solid;
+      border-top: 1px #F7F2E8 solid;
+    }
+    h1, h2 {
+      margin: 0;
+    }
+    h1, h2, h3 {
+      font-weight: normal;
+    }
+    strong {
+      font-weight: normal;
+      color: #CC8000;
+    }
+    a:link {
+      color: #CC8000;
+    }
+    a:active {
+      color: #846040;
+    }
+    .text-centered {
+      text-align: center;
+    }
+    .squishy p, h2, h3 {
+      margin: .2em 0;
+    }
+    .icon-image {
+      width: 1em;
+      height: 1em;
+      vertical-align: text-top;
+    }
+
+    .sorting {
+      color: #CC8000;
+    }
+
+    /* one of the tiles for the results */
+    .meme-card {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 180px;
+      padding: .5em;
+      background-color: #EBE2D9;
+      border-radius: 4px;
+      text-align: center;
+    }
+    /* formatting results+comments for desktop */
+    .result-container {
+      display: flex;
+      padding-bottom: 4em;
+    }
+    .result-side-box {
+      display: inline-block;
+      width: 100px;
+      vertical-align: middle;
+    }
+    .result-main-box {
+      display: inline-block;
+      width: 600px;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .result-main-box h3 {
+      margin-top: .2em;
+    }
+    .desktop-left {
+      min-width: 750px;
+    }
+    .desktop-right {
+      padding-left: 1em;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .mobile-only {
+      display: none;
+    }
+    .mobile-table {
+      background-color: #EBE2D9;
+      padding: 1em;
+    }
+
+    /* credit to https://projects.verou.me/bubbly/ */
+    .speech-bubble {
+      position: relative;
+      color: #EBE2D9;
+      background: #495366;
+      border-radius: 2em;
+      margin-left: 16px;
+      margin-bottom: 10px;
+      padding: 1em;
+    }
+    .speech-bubble:after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 1em;
+      width: 0;
+      height: 0;
+      border: 16px solid transparent;
+      border-right-color: #495366;
+      border-left: 0;
+      border-top: 0;
+      margin-left: -10px;
+    }
+    .speech-bubble.right {
+      color: #495366;
+      background: #EBE2D9;
+      margin-left: 0;
+      margin-right: 16px;
+      margin-left: auto;
+    }
+    .speech-bubble.right:after {
+      left: auto;
+      right: 0;
+      border-left: 16px solid #EBE2D9;
+      border-right: 0;
+      border-top: 0;
+      margin-right: -10px;
+    }
+
+    /* override vant styling */
+    :root {
+      --van-background-color: #D9D1C5;
+      --van-background-color-light: #EBE2D9;
+      --van-border-color: #AA9079;
+      --van-text-color: #846040;
+      --van-success-color: #CC8000;
+      --van-danger-color: #495366; /* This is the highlight actually */
+      --van-sidebar-width: 150px;
+      --van-sidebar-selected-background-color: transparent;
+      --van-sidebar-active-color: transparent;
+      --van-sidebar-font-size: 1.2em;
+      --van-sidebar-selected-border-color: #846040;
+      --van-sidebar-padding: 1em 0 1em 1.5em;
+      --van-circle-layer-color: #D5C9B8;
+      --van-grid-item-content-padding: 0;
+    }
+    /* override sidebar styles */
+    .van-sidebar-item::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      box-sizing: border-box;
+      background-color: transparent;
+      width: 12px;
+      height: 12px;
+      transform: rotate(0.125turn) translate(0, -50%);
+      border: 3px solid #846040;
+    }
+    .van-sidebar-item--select::before {
+      background-color: #846040;
+    }
+    .van-dropdown-menu__title::after {
+      border-color: transparent transparent #846040 #846040;
+    }
+
+    /* tablet adjustments */
+    @media screen and (max-width: 1264px) {
+      body {
+        padding: 0 16px;
+      }
+      .result-container {
+        display: block;
+      }
+    }
+    /* mobile adjustments */
+    @media screen and (max-width: 960px) {
+      body {
+        padding: 0 10px;
+      }
+      main {
+        margin-left: 0;
+      }
+      .desktop-only {
+        display: none;
+      }
+      section {
+        padding: .5em;
+      }
+      .result-main-box {
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+      .result-container {
+        display: block;
+      }
+      .desktop-left {
+        min-width: 0;
+      }
+      .desktop-right {
+        padding: 0;
+      }
+      .mobile-only {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+
+    <nav class="desktop-only">
+      <van-sidebar v-model="activeSection" @change="goToSection">
+        <van-sidebar-item
+          v-for="section of sections"
+          :title="section"
+        >
+        </van-sidebar-item>
+      </van-sidebar>
+    </nav>
+
+    <main id="Main">
+      <header>
+        <p v-if="time == 0">This event has ended, check out the results!</p>
+        <p v-else>
+          Judgment begins on Friday, July 8
+          <van-count-down :time="time" format="DDd HHh mmm sss"></van-count-down>
+        </p>
+        <h1 ref="Top">
+          Meme Builds Event
+          <img src="../images/cat_army_logo.png" class="icon-image">
+        </h1>
+        <p>hosted by cat army</p>
+        <van-steps :active="eventProgress">
+          <van-step>Building</van-step>
+          <van-step>Judgment</van-step>
+          <van-step>Results</van-step>
+        </van-steps>
+      </header>
+
+      <section>
+        <h2 id="Info">Info</h2>
+        <p>Travelers made a secret Genshin meme build and dropped hints about what they were building. A single meme could include either 1 or 2 characters.</p>
+
+        <van-divider></van-divider>
+
+        <van-tabs v-model:active="activeInfoTab" type="card">
+          <van-tab title="Submission">
+            <p>Send your main hint and a screenshot of your current character roster to any of the judges.</p>
+            <p>After 2 weeks, the judges will try to guess your meme, and then you reveal and showcase it either in co-op or as a video. Once all the memes are revealed, the judges will discuss and score the memes. The final scores will be posted along with the main hint, description of the build, and an optional additional caption.</p>
+          </van-tab>
+          <van-tab title="Prizes">
+            <p>
+              <ul>
+                <li>1st place: an egg, art collaboration by cat army</li>
+                <li>2nd place: an egg</li>
+                <li>3rd place: an egg, drawn blindfolded</li>
+              </ul>
+            </p>
+            <p>Note that you will not receive a physical egg, but photos of the character you request, drawn on an egg.</p>
+          </van-tab>
+          <van-tab title="Points">
+            <p>
+              <ul>
+                <li>40 pts <strong>Uniqueness</strong> - Be creative! Make something that's not all over YouTube.</li>
+                <li>20 pts <strong>Usability</strong> - Memes are greater when you can use them. Sorry VV Ningguang.</li>
+                <li>25 pts <strong>Dedication</strong> - Grabbing an odd weapon and calling it a day is weak.</li>
+                <li>15 pts <strong>Hints</strong> - Quality hints are important, but don't reveal your meme early.</li>
+                <ul>
+                  <li>• 4 relation to character</li>
+                  <li>• 4 relation to what you did with them</li>
+                  <li>• 7 cleverness of the hints</li>
+                </ul>
+              </ul>
+            </p>
+            <p>Each judge can award an additional bias point to one contestant of their choice.</p>
+          </van-tab>
+        </van-tabs>
+      </section>
+
+      <h2 id="Results" style="margin-top:1em">Results</h2>
+
+      <van-row class="text-centered" gutter="10" align="bottom" style="margin-bottom: 20px">
+        <van-col span="7">
+          <div class="meme-card squishy" style="min-height: 140px">
+            <p>Kat</p>
+            <van-image
+              round
+              width="64px"
+              height="64px"
+              src="Kat.webp"
+            >
+            </van-image>
+            <p>2nd</p>
+          </div>
+        </van-col>
+        <van-col span="10">
+          <div class="meme-card squishy">
+            <p>Ice</p>
+            <van-image
+              round
+              width="64px"
+              height="64px"
+              src="Ice.webp"
+            >
+            </van-image>
+            <p>1st</p>
+          </div>
+        </van-col>
+        <van-col span="7">
+          <div class="meme-card squishy" style="min-height: 140px">
+            <p>Alex + Bord</p>
+            <van-image
+              round
+              width="64px"
+              height="64px"
+              src="bord_alex.png"
+            >
+            </van-image>
+            <p>3rd</p>
+          </div>
+        </van-col>
+      </van-row>
+      <h2 style="text-align: center">Congratulations to our winners!</h2>
+      <p style="text-align: center">The first place tie between Kat and Ice was broken by the Pokémon coin</p>
+
+      <p>Ranking (click to sort by category)</p>
+      
+      <van-grid class="desktop-only" :column-num="7" :border="false">
+        <van-grid-item
+          v-for="(heading, index) of categories"
+          @click="sortByCategory(index)"
+        >
+          <p :class="{ sorting: heading === categories[sorting] }">
+            {{ heading }}
+          </p>
+        </van-grid-item>
+      </van-grid>
+      <van-grid class="desktop-only" :column-num="categories.length">
+        <van-grid-item v-for="item in rankedDataDump">
+          <p>{{ item }}</p>
+        </van-grid-item>
+      </van-grid>
+
+      <van-dropdown-menu class="mobile-only">
+        <van-dropdown-item v-model="sorting" :options="mobileCategories" />
+      </van-dropdown-menu>
+      <div class="mobile-only">
+        <van-row v-for="contestant of points" class="mobile-table">
+          <van-col span="16">{{ contestant[0] }}</van-col>
+          <van-col span="8">{{ contestant[sorting] }}</van-col>
+        </van-row>
+      </div>
+
+      <h2 id="Entries" style="margin: 1em 0">Entries</h2>
+
+      <result-display
+        v-for="contestant of results"
+        v-bind="contestant"
+        :judges="judges"
+      >
+      </result-display>
+
+      <van-divider></van-divider>
+      <h2>Thank you for your submissions!</h2>
+
+      <p style="margin-bottom: 3em">This page uses <a href="https://vuejs.org/">Vue3</a>, <a href="https://youzan.github.io/vant/">Vant</a> and <a href="https://projects.verou.me/bubbly/">Bubbly</a></p>
+
+    </main>
+
+    <van-button
+      icon="arrow-up" 
+      type="danger"
+      @click="goToSection(0)"
+      style="position: fixed; bottom: 1em; right: 1em;"
+    >
+    </van-button>
+  </div>
+
+  <!-- import script -->
+  <script src="https://fastly.jsdelivr.net/npm/vue@3"></script>
+  <script src="https://fastly.jsdelivr.net/npm/vant@3/lib/vant.min.js"></script>
+  <script>
+    const { createApp } = Vue;
+
+    const app = createApp({
+      data() {
+        return {
+          time: 1657339140000 - Date.now(),
+          eventProgress: 2,
+          sections: ["Info", "Results"],
+          activeSection: 0,
+          activeInfoTab: 0,
+          judges: {
+            agg: 'Agg.webp',
+            egg: 'Egg.webp',
+            ugg: 'Ugg.webp',
+            coin: 'coin.png'
+          },
+          categories: ['name', 'total', 'uniqueness', 'usability', 'dedication', 'hints', 'bias'],
+          mobileCategories: [
+            { text: 'total', value: 1 },
+            { text: 'uniqueness', value: 2 },
+            { text: 'usability', value: 3 },
+            { text: 'dedication', value: 4 },
+            { text: 'hints', value: 5 },
+            { text: 'bias', value: 6 }
+          ],
+          sorting: 1,
+          results: [
+            {
+              icon: 'Kat.webp',
+              name: 'Kat',
+              hint: 'Wasted potential',
+              elements: ['pyro'],
+              catchphrase: '',
+              meme: '4 Shimenawa Phys Charged Attack Diluc',
+              uniqueness: 35,
+              usability: 20,
+              dedication: 20,
+              hints: {
+                character: 2,
+                build: 2,
+                cleverness: 6
+              },
+              bias: [],
+              comments: [
+                { judge: "agg", image: "Diluc.webp", right: true }
+              ]
+            },
+            {
+              icon: 'Ice.webp',
+              name: 'Ice',
+              hint: 'It was me all along',
+              elements: ['geo', 'cryo'],
+              catchphrase: '',
+              meme: 'Cryo Albedo with Haran',
+              uniqueness: 36,
+              usability: 18,
+              dedication: 25,
+              hints: {
+                character: 2,
+                build: 2,
+                cleverness: 1
+              },
+              bias: ['ugg', 'coin'],
+              comments: [
+                { judge: "egg", text: "that 101% crit rate is hilarious", right: true },
+                { judge: "ugg", text: "High dedication for sure" }
+              ]
+            },
+            {
+              icon: 'Bord.webp',
+              name: 'Bord',
+              hint: 'Crystallized Intelligence',
+              elements: ['hydro', 'geo'],
+              catchphrase: '',
+              meme: '4 Archaic Petra Mona swim procs Albedo',
+              uniqueness: 40,
+              usability: 16,
+              dedication: 18,
+              hints: {
+                character: 2,
+                build: 2,
+                cleverness: 4
+              },
+              bias: ['agg'],
+              comments: [
+                { judge: "ugg", text: "I feel Mona was barely in there, but intelligence can easily mean them both I feel" },
+                { judge: "agg", text: "mhm but mona honestly I feel more associated with losing 50/50 and being poor", right: true }, 
+                { judge: "agg", text: "than remembering she very smart", right: true },
+                { judge: "ugg", text: "I sure wasn't bord watching it" },
+                { judge: "ugg", text: "Yeah I'll leave now" }
+              ]
+            },
+            {
+              icon: 'Toast.webp',
+              name: 'Toast',
+              hintImage: 'ToastHint.png',
+              elements: ['cryo', 'cryo'],
+              catchphrase: '',
+              meme: 'Shatter Chongyun',
+              uniqueness: 28,
+              usability: 10,
+              dedication: 25,
+              hints: {
+                character: 1,
+                build: 2,
+                cleverness: 5
+              },
+              bias: ['egg'],
+              comments: [
+                { judge: "agg", text: "haha cant kill birds sucker" },
+                { judge: "ugg", text: "neither can you", right: true },
+                { judge: "agg", text: "whatchu mean" },
+                { judge: "agg", text: "I was xiao uwu" },
+                { judge: "ugg", text: "no proof", right: true },
+                { judge: "ugg", text: "didnt happen", right: true }
+              ]
+            },
+            {
+              icon: 'Schnee.webp',
+              name: 'Schnee',
+              hint: 'Revenge is a dish best served cold, and repeatedly',
+              elements: ['cryo', 'cryo'],
+              catchphrase: '',
+              meme: '4 Thundering Fury Eula E spam',
+              uniqueness: 33,
+              usability: 11,
+              dedication: 25,
+              hints: {
+                character: 3,
+                build: 3,
+                cleverness: 6
+              },
+              bias: [],
+              comments: [
+                { judge: "agg", text: "chongyun., again", right: true },
+                { judge: "egg", text: "well it is best served repeatedly after all" }
+              ]
+            },
+            {
+              icon: 'Pleco.webp',
+              name: 'Pleco',
+              hint: 'Fast chonk',
+              elements: ['cryo', 'hydro'],
+              catchphrase: '',
+              meme: '4 Echoes Shatter Chongyun with Ayato support',
+              uniqueness: 32,
+              usability: 15,
+              dedication: 14,
+              hints: {
+                character: 1,
+                build: 3,
+                cleverness: 4
+              },
+              bias: [],
+              comments: [
+                { judge: "ugg", text: "hes prone to death" },
+                { judge: "ugg", text: "like every other creature in this universe" },
+                { judge: "egg", text: "I don't care about death", right: true },
+                { judge: "ugg", text: "yeah fair point, death is a constant" }
+              ]
+            },
+            {
+              icon: 'Alex.webp',
+              name: 'Alex',
+              hint: 'Being maidenless when you want it requires exceptionally Bad luck',
+              elements: ['pyro', 'anemo'],
+              catchphrase: '',
+              meme: 'VV Bennett',
+              uniqueness: 34,
+              usability: 16,
+              dedication: 23,
+              hints: {
+                character: 2,
+                build: 2,
+                cleverness: 6
+              },
+              bias: [],
+              comments: [
+                { judge: "agg", text: "no maidens?" },
+                { judge: "ugg", text: "But Bennett has maidens", right: true },
+                { judge: "ugg", text: "Jean", right: true },
+                { judge: "agg", text: "you wanan tell the class something loonie" },
+                { judge: "ugg", text: "I've had 4 cans of energy drinks in the span of 30 minutes", right: true }
+              ]
+            },
+          ],
+          points: []
+        }
+      },
+      methods: {
+        goToSection(index) {
+          let element = document.getElementById(this.sections[index]);
+          element.scrollIntoView({ behavior: 'smooth' });
+        },
+        sortByCategory(index) {
+          this.sorting = index;
+        },
+        hintsTotal(contestant) {
+          return contestant.hints.build + contestant.hints.character + contestant.hints.cleverness;
+        },
+        total(contestant) {
+          return contestant.uniqueness + contestant.usability + contestant.dedication + this.hintsTotal(contestant) + contestant.bias.length;
+        }
+      },
+      computed: {
+        rankedDataDump() {
+          // sort points arrays by the current category
+          this.points.sort((a, b) => {
+            if (a[this.sorting] < b[this.sorting]) {
+              return 1;
+            } else if (a[this.sorting] > b[this.sorting]) {
+              return -2;
+            }
+            return 0;
+          });
+          let data = [].concat(...this.points);
+          return data;
+        }
+      },
+      created() {
+        // set the time for the countdown
+        if (this.time < 0) {
+          this.time = 0;
+        }
+        
+        // create the page sections for each person
+        for (let contestant of this.results) {
+          this.sections.push(contestant.name);
+        }
+
+        // processing and flattening points totals for the table
+        for (let result of this.results) {
+          let data = [];
+          for (let category of this.categories) {
+            if (category === 'hints') {
+              data.push(this.hintsTotal(result));
+            } else if (category === 'bias') {
+              data.push(result.bias.length)
+            } else if (category === 'total') {
+              data.push(this.total(result));
+            } else {
+              data.push(result[category]);
+            }
+          }
+          this.points.push(data);
+        }
+      }
+    });
+
+    app.use(vant);
+
+    app.component('speech-bubble', {
+      props: {
+        icon: '',
+        text: '',
+        image: '',
+        right: false
+      },
+      template:
+      `<div style="display:flex">
+        <div v-if="!right">
+          <van-image round width="48px" height="48px" :src="icon"></van-image>
+        </div>
+        <div class="speech-bubble" :class="{ right: right }">
+          <div v-if="text">{{ text }}</div>
+          <img v-else :src="image">
+        </div>
+        <div v-if="right">
+          <van-image round width="48px" height="48px" :src="icon"></van-image>
+        </div>
+      </div>`
+    });
+
+    app.component('result-display', {
+      props: {
+        icon: String,
+        name: String,
+        hint: String,
+        hintImage: String,
+        elements: Array,
+        catchphrase: {
+          type: String,
+          default: ''
+        },
+        meme: String,
+        uniqueness: Number,
+        usability: Number,
+        dedication: Number,
+        hints: Object,
+        bias: Array,
+        comments: Array,
+        judges: Object
+      },
+      data() {
+        return {
+          percent: {
+            uniqueness: Math.ceil(this.uniqueness / 40 * 100),
+            usability: Math.ceil(this.usability / 20 * 100),
+            dedication: Math.ceil(this.dedication / 25 * 100),
+          }
+        }
+      },
+      computed: {
+        total() {
+          return this.uniqueness + this.usability + this.dedication + this.hints.character + this.hints.build + this.hints.cleverness + this.bias.length;
+        }
+      },
+      template:
+      `<div class="result-container">
+        <div class="desktop-left">
+          <van-row style="margin-bottom: 10px">
+            <van-col span="24">
+              <div :id="name" class="meme-card squishy" style="min-height: 0; position: relative;">
+                <div class="result-side-box">
+                  <p>{{ name }}</p>
+                  <van-image round width="64px" height="64px" :src="icon">
+                  </van-image>
+                </div>
+                <div class="result-main-box">
+                  <h3>
+                    <img v-for="element of elements" :src="'../images/'+element+'.png'" style="width:24px; height:24px; vertical-align:text-top">
+                    <img v-if="hintImage" :src="hintImage" style="max-width:100%; vertical-align:middle">
+                    {{ hint }}
+                  </h3>
+                  <p style="color: #846040; font-size: .7em;">{{ meme }}</p>
+                  <p v-if="catchphrase" style="margin-top: 0"><em>"{{ catchphrase }}"</em></p>
+                </div>
+                <div v-if="bias.length" style="position: absolute; top: -12px; right: 0">
+                  <van-image v-for="judge of bias" round width="48px" height="48px" :src="judges[judge]"></van-image>
+                  <p style="margin: 0; font-size: .7em">+{{ bias.length }} bias</p>
+                </div>
+              </div>
+            </van-col>
+          </van-row>
+          <van-row gutter="10" style="margin-bottom: 10px">
+            <van-col span="12">
+              <div class="meme-card">
+                <p>Uniqueness</p>
+                <van-circle
+                  v-model:current-rate="percent.uniqueness"
+                  :rate="percent.uniqueness"
+                  :color="{'0%': '#3fecff','100%': '#6149f6'}"
+                  :stroke-width="60"
+                  :text="uniqueness+'/40'"
+                />
+              </div>
+            </van-col>
+            <van-col span="12">
+              <div class="meme-card">
+                <p>Usability</p>
+                <van-circle
+                  v-model:current-rate="percent.usability"
+                  :rate="percent.usability"
+                  :color="{'0%': '#FFF260','100%': '#FFB349'}"
+                  :stroke-width="60"
+                  :text="usability+'/20'"
+                />
+              </div>
+            </van-col>
+          </van-row>
+          <van-row gutter="10" style="margin-bottom: 10px">
+            <van-col span="12">
+              <div class="meme-card">
+                <p>Dedication</p>
+                <van-circle
+                  v-model:current-rate="percent.dedication"
+                  :rate="percent.dedication"
+                  :color="{'0%': '#00F083','100%': '#007B43'}"
+                  :stroke-width="60"
+                  :text="dedication+'/25'"
+                />
+              </div>
+            </van-col>
+            <van-col span="12">
+              <div class="meme-card">
+                <p>Hints</p>
+                <ul>
+                  <li><strong>{{ hints.character }}</strong>/4 character</li>
+                  <li><strong>{{ hints.build }}</strong>/4 build</li>
+                  <li><strong>{{ hints.cleverness }}</strong>/7 cleverness</li>
+                </ul>
+              </div>
+            </van-col>
+          </van-row>
+          <van-row style="margin-bottom: 10px">
+            <van-col span="24">
+              <div class="meme-card" style="min-height: 0">
+                <h2>Total: {{ total }}</h2>
+              </div>
+            </van-col>
+          </van-row>
+        </div>
+        <div class="desktop-right">
+          <h3 style="margin-bottom: 10px">Comments</h3>
+          <speech-bubble
+            v-for="comment of comments"
+            :text="comment.text"
+            :image="comment.image"
+            :icon="judges[comment.judge]"
+            :right="comment.right"
+          ></speech-bubble>
+        </div>
+      </div>`
+    });
+
+    app.mount('#app');
+  </script>
+</body>
+</html>
